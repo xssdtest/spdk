@@ -1,0 +1,31 @@
+test: (g=0): rw=randwrite, bs=(R) 4096B-4096B, (W) 4096B-4096B, (T) 4096B-4096B, ioengine=spdk, iodepth=64
+...
+fio-3.3
+Starting 4 threads
+Starting SPDK v20.04-pre git sha1 c55cdc4 / DPDK 19.11.0 initialization...
+[ DPDK EAL parameters: fio --no-shconf -c 0x1 -m 0 --log-level=lib.eal:6 --log-level=lib.cryptodev:5 --log-level=user1:6 --iova-mode=pa --base-virtaddr=0x200000000000 --match-allocations --file-prefix=spdk_pid19131 ]
+
+test: (groupid=0, jobs=4): err= 0: pid=19152: Thu Feb 27 13:52:30 2020
+  write: IOPS=71.7k, BW=280MiB/s (294MB/s)(5600MiB/20004msec)
+    slat (nsec): min=134, max=32474, avg=182.49, stdev=104.72
+    clat (usec): min=124, max=21075, avg=3571.14, stdev=1287.02
+     lat (usec): min=125, max=21075, avg=3571.32, stdev=1287.02
+    clat percentiles (usec):
+     |  1.00th=[ 1811],  5.00th=[ 2442], 10.00th=[ 2474], 20.00th=[ 2573],
+     | 30.00th=[ 2638], 40.00th=[ 2802], 50.00th=[ 2933], 60.00th=[ 3130],
+     | 70.00th=[ 4752], 80.00th=[ 5014], 90.00th=[ 5276], 95.00th=[ 5473],
+     | 99.00th=[ 5932], 99.50th=[ 6259], 99.90th=[14222], 99.95th=[15139],
+     | 99.99th=[20317]
+   bw (  KiB/s): min=67856, max=75735, per=25.01%, avg=71699.85, stdev=2356.20, samples=160
+   iops        : min=16964, max=18933, avg=17924.88, stdev=589.03, samples=160
+  lat (usec)   : 250=0.01%, 500=0.01%, 750=0.04%, 1000=0.03%
+  lat (msec)   : 2=1.24%, 4=63.85%, 10=34.65%, 20=0.15%, 50=0.03%
+  cpu          : usr=100.06%, sys=0.00%, ctx=28, majf=0, minf=10
+  IO depths    : 1=0.1%, 2=0.1%, 4=0.1%, 8=0.1%, 16=0.1%, 32=0.1%, >=64=100.0%
+     submit    : 0=0.0%, 4=100.0%, 8=0.0%, 16=0.0%, 32=0.0%, 64=0.0%, >=64=0.0%
+     complete  : 0=0.0%, 4=100.0%, 8=0.0%, 16=0.0%, 32=0.0%, 64=0.1%, >=64=0.0%
+     issued rwt: total=0,1433516,0, short=0,0,0, dropped=0,0,0
+     latency   : target=0, window=0, percentile=100.00%, depth=64
+
+Run status group 0 (all jobs):
+  WRITE: bw=280MiB/s (294MB/s), 280MiB/s-280MiB/s (294MB/s-294MB/s), io=5600MiB (5872MB), run=20004-20004msec

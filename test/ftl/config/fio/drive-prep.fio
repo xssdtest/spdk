@@ -1,0 +1,14 @@
+[drive_prep]
+ioengine=libaio
+filename=${FTL_BDEV_NAME}
+thread=1
+
+direct=1
+buffered=0
+size=100%
+randrepeat=0
+norandommap
+bs=4k
+iodepth=128
+numjobs=1
+rw=write

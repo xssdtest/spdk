@@ -1,0 +1,1 @@
+GROUP ( librte_bus_pci.a librte_bus_vdev.a librte_cmdline.a librte_compressdev.a librte_cryptodev.a librte_eal.a librte_ethdev.a librte_fib.a librte_hash.a librte_kvargs.a librte_mbuf.a librte_mempool.a librte_mempool_bucket.a librte_mempool_ring.a librte_meter.a librte_net.a librte_pci.a librte_rib.a librte_ring.a librte_vhost.a )
