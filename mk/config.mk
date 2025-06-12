@@ -75,11 +75,11 @@ CONFIG_TESTS?=y
 
 # Directory that contains the desired SPDK environment library.
 # By default, this is implemented using DPDK.
-CONFIG_ENV?=/home/hyc/xssdtest_ai/xt_platform/spdk/lib/env_dpdk
+CONFIG_ENV?=/home/hyc/xt_git/spdk/lib/env_dpdk
 
 # This directory should contain 'include' and 'lib' directories for your DPDK
 # installation.
-CONFIG_DPDK_DIR?=/home/hyc/xssdtest_ai/xt_platform/spdk/dpdk/build
+CONFIG_DPDK_DIR?=/home/hyc/xt_git/spdk/dpdk/build
 
 # Build SPDK FIO plugin. Requires CONFIG_FIO_SOURCE_DIR set to a valid
 # fio source code directory.
