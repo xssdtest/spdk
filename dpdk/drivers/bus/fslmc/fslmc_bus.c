@@ -379,7 +379,6 @@ rte_fslmc_probe(void)
 {
 	int ret = 0;
 	int probe_all;
-	printf(" --------------call rte_fslmc_probe  ---------------\n");
 	struct rte_dpaa2_device *dev;
 	struct rte_dpaa2_driver *drv;
 

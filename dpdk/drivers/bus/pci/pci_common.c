@@ -474,7 +474,6 @@ pci_hot_unplug_handler(struct rte_device *dev)
 	case RTE_KDRV_IGB_UIO:
 	case RTE_KDRV_UIO_GENERIC:
 	case RTE_KDRV_NIC_UIO:
-	case RTE_KDRV_NVME:
 		/* BARs resource is invalid, remap it to be safe. */
 		ret = pci_uio_remap_resource(pdev);
 		break;

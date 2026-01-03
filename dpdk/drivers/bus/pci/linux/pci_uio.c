@@ -133,16 +133,11 @@ pci_get_uio_dev(struct rte_pci_device *dev, char *dstbuf,
 
 	/* depending on kernel version, uio can be located in uio/uioX
 	 * or uio:uioX */
-	if(dev->kdrv != RTE_KDRV_NVME){
-		snprintf(dirname, sizeof(dirname),
+
+	snprintf(dirname, sizeof(dirname),
 			"%s/" PCI_PRI_FMT "/uio", rte_pci_get_sysfs_path(),
 			loc->domain, loc->bus, loc->devid, loc->function);
-	}else{
-		snprintf(dirname, sizeof(dirname),
-			"%s/" PCI_PRI_FMT "/nvme", rte_pci_get_sysfs_path(),
-			loc->domain, loc->bus, loc->devid, loc->function);
-	}
-	
+
 	dir = opendir(dirname);
 	if (dir == NULL) {
 		/* retry with the parent directory */
@@ -159,38 +154,29 @@ pci_get_uio_dev(struct rte_pci_device *dev, char *dstbuf,
 
 	/* take the first file starting with "uio" */
 	while ((e = readdir(dir)) != NULL) {
+		/* format could be uio%d ...*/
+		int shortprefix_len = sizeof("uio") - 1;
+		/* ... or uio:uio%d */
+		int longprefix_len = sizeof("uio:uio") - 1;
 		char *endptr;
-		if(dev->kdrv != RTE_KDRV_NVME){
-			/* format could be uio%d ...*/
-			int shortprefix_len = sizeof("uio") - 1;
-			/* ... or uio:uio%d */
-			int longprefix_len = sizeof("uio:uio") - 1;
-		
-			if (strncmp(e->d_name, "uio", 3) != 0)
-				continue;
 
-			/* first try uio%d */
-			errno = 0;
-			uio_num = strtoull(e->d_name + shortprefix_len, &endptr, 10);
-			if (errno == 0 && endptr != (e->d_name + shortprefix_len)) {
-				snprintf(dstbuf, buflen, "%s/uio%u", dirname, uio_num);
-				break;
-			}
+		if (strncmp(e->d_name, "uio", 3) != 0)
+			continue;
 
-			/* then try uio:uio%d */
-			errno = 0;
-			uio_num = strtoull(e->d_name + longprefix_len, &endptr, 10);
-			if (errno == 0 && endptr != (e->d_name + longprefix_len)) {
-				snprintf(dstbuf, buflen, "%s/uio:uio%u", dirname, uio_num);
-				break;
-			}
-		}else{
-			if(strncmp(e->d_name, "nvme", 4) != 0)
-				continue;
-			uio_num = strtoull(e->d_name + 4, &endptr, 10);
-			snprintf(dstbuf, buflen, "%s/nvme%u", dirname, uio_num);
-			if(access(dstbuf, F_OK) == 0)
-				break;
+		/* first try uio%d */
+		errno = 0;
+		uio_num = strtoull(e->d_name + shortprefix_len, &endptr, 10);
+		if (errno == 0 && endptr != (e->d_name + shortprefix_len)) {
+			snprintf(dstbuf, buflen, "%s/uio%u", dirname, uio_num);
+			break;
+		}
+
+		/* then try uio:uio%d */
+		errno = 0;
+		uio_num = strtoull(e->d_name + longprefix_len, &endptr, 10);
+		if (errno == 0 && endptr != (e->d_name + longprefix_len)) {
+			snprintf(dstbuf, buflen, "%s/uio:uio%u", dirname, uio_num);
+			break;
 		}
 	}
 	closedir(dir);
@@ -239,15 +225,12 @@ pci_uio_alloc_resource(struct rte_pci_device *dev,
 	/* find uio resource */
 	uio_num = pci_get_uio_dev(dev, dirname, sizeof(dirname), 1);
 	if (uio_num < 0) {
-		RTE_LOG(WARNING, EAL, "  "PCI_PRI_FMT" not managed by UIO or NVME driver, "
+		RTE_LOG(WARNING, EAL, "  "PCI_PRI_FMT" not managed by UIO driver, "
 				"skipping\n", loc->domain, loc->bus, loc->devid, loc->function);
 		return 1;
 	}
-	if(dev->kdrv != RTE_KDRV_NVME){
-		snprintf(devname, sizeof(devname), "/dev/uio%u", uio_num);
-	}else{
-		snprintf(devname, sizeof(devname), "/dev/nvme%u", uio_num);
-	}
+	snprintf(devname, sizeof(devname), "/dev/uio%u", uio_num);
+
 	/* save fd if in primary process */
 	dev->intr_handle.fd = open(devname, O_RDWR);
 	if (dev->intr_handle.fd < 0) {
@@ -255,10 +238,9 @@ pci_uio_alloc_resource(struct rte_pci_device *dev,
 			devname, strerror(errno));
 		goto error;
 	}
-	if(dev->kdrv != RTE_KDRV_NVME)
-		snprintf(cfgname, sizeof(cfgname),"/sys/class/uio/uio%u/device/config", uio_num);
-	else
-		snprintf(cfgname, sizeof(cfgname),"/sys/class/nvme/nvme%u/device/config", uio_num);
+
+	snprintf(cfgname, sizeof(cfgname),
+			"/sys/class/uio/uio%u/device/config", uio_num);
 	dev->intr_handle.uio_cfg_fd = open(cfgname, O_RDWR);
 	if (dev->intr_handle.uio_cfg_fd < 0) {
 		RTE_LOG(ERR, EAL, "Cannot open %s: %s\n",

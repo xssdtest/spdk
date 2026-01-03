@@ -429,37 +429,30 @@ spdk_pci_device_attach(struct spdk_pci_driver *driver,
 	int rc;
 	char bdf[32];
 	spdk_pci_addr_fmt(bdf, sizeof(bdf), pci_address);
-	// printf("spdk pci device attach: %s in spdk_pci_device_attach\n", bdf);
 	cleanup_pci_devices();
 
 	TAILQ_FOREACH(dev, &g_pci_devices, internal.tailq) {
 		if (spdk_pci_addr_compare(&dev->addr, pci_address) == 0) {
-			// printf("spdk pci device attach: %s in compare sucessfully\n", bdf);
 			break;
 		}
 	}
 
 	if (dev != NULL && dev->internal.driver == driver) {
-		// printf("spdk pci device attach  dev->internal.attached %d\n", dev->internal.attached);
 		if (dev->internal.attached){
 			return 0;
 		}
 		pthread_mutex_lock(&g_pci_mutex);
-		// printf("spdk pci device attach dev->internal.pending_removal %d\n", dev->internal.pending_removal);
 		if (dev->internal.pending_removal) {
 			pthread_mutex_unlock(&g_pci_mutex);
 			return -1;
 		}
-		// printf("spdk pci device attach call enum_cb start\n");
 		rc = enum_cb(enum_ctx, dev);
-		// printf("spdk pci device attach call enum_cb end %d\n", rc); 
 		if (rc == 0) {
 			dev->internal.attached = true;
 		}
 		pthread_mutex_unlock(&g_pci_mutex);
 		return rc;
 	}
-	// printf("spdk pci device attach driver->is_registered %d\n", driver->is_registered);
 	if (!driver->is_registered) {
 		driver->is_registered = true;
 		rte_pci_register(&driver->driver);

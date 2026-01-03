@@ -548,7 +548,6 @@ rte_dpaa_bus_dev_build(void)
 static int
 rte_dpaa_bus_probe(void)
 {
-	printf(" --------------call rte_dpaa_bus_probe  ---------------\n");
 	int ret = -1;
 	struct rte_dpaa_device *dev;
 	struct rte_dpaa_driver *drv;

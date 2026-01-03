@@ -708,7 +708,6 @@ pcie_nvme_enum_cb(void *ctx, struct spdk_pci_device *pci_dev)
 	struct nvme_pcie_enum_ctx *enum_ctx = ctx;
 	struct spdk_nvme_ctrlr *ctrlr;
 	struct spdk_pci_addr pci_addr;
-	SPDK_DEBUGLOG(SPDK_LOG_NVME, "pcie nvme enum cb\n");
 	pci_addr = spdk_pci_device_get_addr(pci_dev);
 
 	spdk_nvme_trid_populate_transport(&trid, SPDK_NVME_TRANSPORT_PCIE);
@@ -764,11 +763,9 @@ nvme_pcie_ctrlr_scan(struct spdk_nvme_probe_ctx *probe_ctx,
 	}
 
 	if (enum_ctx.has_pci_addr == false) {
-		SPDK_DEBUGLOG(SPDK_LOG_NVME, "nvme pcie ctrlr scan call spdk_pci_enumerate\n");
 		return spdk_pci_enumerate(spdk_pci_nvme_get_driver(),
 					  pcie_nvme_enum_cb, &enum_ctx);
 	} else {
-		SPDK_DEBUGLOG(SPDK_LOG_NVME, "nvme pcie ctrlr scan call spdk_pci_device_attach\n");
 		return spdk_pci_device_attach(spdk_pci_nvme_get_driver(),
 					      pcie_nvme_enum_cb, &enum_ctx, &enum_ctx.pci_addr);
 	}
@@ -883,7 +880,7 @@ static struct spdk_nvme_ctrlr *nvme_pcie_ctrlr_construct(const struct spdk_nvme_
 	return &pctrlr->ctrlr;
 }
 
-int
+static int
 nvme_pcie_ctrlr_enable(struct spdk_nvme_ctrlr *ctrlr)
 {
 	struct nvme_pcie_ctrlr *pctrlr = nvme_pcie_ctrlr(ctrlr);
@@ -913,7 +910,7 @@ nvme_pcie_ctrlr_enable(struct spdk_nvme_ctrlr *ctrlr)
 	return 0;
 }
 
-int
+static int
 nvme_pcie_ctrlr_destruct(struct spdk_nvme_ctrlr *ctrlr)
 {
 	struct nvme_pcie_ctrlr *pctrlr = nvme_pcie_ctrlr(ctrlr);
@@ -947,7 +944,7 @@ nvme_qpair_construct_tracker(struct nvme_tracker *tr, uint16_t cid, uint64_t phy
 	tr->req = NULL;
 }
 
-int
+static int
 nvme_pcie_qpair_reset(struct spdk_nvme_qpair *qpair)
 {
 	struct nvme_pcie_qpair *pqpair = nvme_pcie_qpair(qpair);
@@ -1790,8 +1787,7 @@ nvme_pcie_prp_list_append(struct nvme_tracker *tr, uint32_t *prp_index, void *vi
 	}
 
 	virt_addr_check = spdk_vtophys(virt_addr, NULL);
-	SPDK_DEBUGLOG(SPDK_LOG_NVME_PRPLIST, "prp_index:%u virt_addr:%p len:%u\n",
-		      *prp_index, virt_addr, (uint32_t)len);
+	SPDK_DEBUGLOG(SPDK_LOG_NVME_PRPLIST, "prp_index:%u virt_addr:%p len:%u\n", *prp_index, virt_addr, (uint32_t)len);
 
 	if (spdk_unlikely(((uintptr_t)virt_addr & 3) != 0)) {
 		SPDK_ERRLOG("virt_addr %p not dword aligned\n", virt_addr);
@@ -1823,7 +1819,7 @@ nvme_pcie_prp_list_append(struct nvme_tracker *tr, uint32_t *prp_index, void *vi
 			seg_len = page_size - ((uintptr_t)phys_addr & page_mask);
 		} else {
 			if ((phys_addr & page_mask) != 0) {
-				SPDK_ERRLOG("PRP %u not page aligned (%p)\n", i, phys_addr);
+				SPDK_ERRLOG("PRP %u not page aligned (%ld)\n", i, phys_addr);
 				return -EFAULT;
 			}
 

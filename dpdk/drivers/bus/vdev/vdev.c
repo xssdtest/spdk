@@ -489,7 +489,6 @@ vdev_probe(void)
 {
 	struct rte_vdev_device *dev;
 	int r, ret = 0;
-	printf(" --------------call vdev_probe  ---------------\n");
 	/* call the init function for each virtual device */
 	TAILQ_FOREACH(dev, &vdev_device_list, next) {
 		/* we don't use the vdev lock here, as it's only used in DPDK

@@ -172,7 +172,6 @@ rte_vmbus_probe(void)
 	struct rte_vmbus_device *dev;
 	size_t probed = 0, failed = 0;
 	char ubuf[RTE_UUID_STRLEN];
-	printf(" --------------call rte_vmbus_probe  ---------------\n");
 	FOREACH_DEVICE_ON_VMBUS(dev) {
 		probed++;
 

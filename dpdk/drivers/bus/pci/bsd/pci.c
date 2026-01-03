@@ -62,10 +62,10 @@ int
 rte_pci_map_device(struct rte_pci_device *dev)
 {
 	int ret = -1;
+
 	/* try mapping the NIC resources */
 	switch (dev->kdrv) {
 	case RTE_KDRV_NIC_UIO:
-	case RTE_KDRV_NVME:
 		/* map resources for devices that use uio */
 		ret = pci_uio_map_resource(dev);
 		break;
@@ -86,7 +86,6 @@ rte_pci_unmap_device(struct rte_pci_device *dev)
 	/* try unmapping the NIC resources */
 	switch (dev->kdrv) {
 	case RTE_KDRV_NIC_UIO:
-	case RTE_KDRV_NVME:
 		/* unmap resources for devices that use uio */
 		pci_uio_unmap_resource(dev);
 		break;
@@ -115,44 +114,13 @@ pci_uio_alloc_resource(struct rte_pci_device *dev,
 		struct mapped_pci_resource **uio_res)
 {
 	char devname[PATH_MAX]; /* contains the /dev/uioX */
-	struct rte_pci_addr *loc = &dev->addr;
-	if(dev->kdrv != RTE_KDRV_NVME){
-		snprintf(devname, sizeof(devname), "/dev/uio@pci:%u:%u:%u",
-				dev->addr.bus, dev->addr.devid, dev->addr.function);
-	}else{
-		snprintf(dirname, sizeof(dirname),
-			"%s/" PCI_PRI_FMT "/nvme", rte_pci_get_sysfs_path(),
-			loc->domain, loc->bus, loc->devid, loc->function);
-		dir = opendir(dirname);
-		if (dir == NULL) {
-			/* retry with the parent directory */
-			snprintf(dirname, sizeof(dirname),
-					"%s/" PCI_PRI_FMT, rte_pci_get_sysfs_path(),
-					loc->domain, loc->bus, loc->devid, loc->function);
-			dir = opendir(dirname);
+	struct rte_pci_addr *loc;
 
-			if (dir == NULL) {
-				RTE_LOG(ERR, EAL, "Cannot opendir %s\n", dirname);
-				return -1;
-			}
-		}
+	loc = &dev->addr;
 
-		/* take the first file starting with "nvme" */
-		while ((e = readdir(dir)) != NULL) {
-			char *endptr;
-			if(strncmp(e->d_name, "nvme", 4) != 0)
-				continue;
-			uio_num = strtoull(e->d_name + 4, &endptr, 10);
-			snprintf(devname, sizeof(devname), "/dev/nvme%u", uio_num);
-			if(access(dstbuf, F_OK) == 0)
-				break;
-		}
-		closedir(dir);
+	snprintf(devname, sizeof(devname), "/dev/uio@pci:%u:%u:%u",
+			dev->addr.bus, dev->addr.devid, dev->addr.function);
 
-		/* No uio resource found */
-		if (e == NULL)
-			return 1;
-	}
 	if (access(devname, O_RDWR) < 0) {
 		RTE_LOG(WARNING, EAL, "  "PCI_PRI_FMT" not managed by UIO driver, "
 				"skipping\n", loc->domain, loc->bus, loc->devid, loc->function);
@@ -571,7 +539,6 @@ rte_pci_ioport_map(struct rte_pci_device *dev, int bar,
 	switch (dev->kdrv) {
 #if defined(RTE_ARCH_X86)
 	case RTE_KDRV_NIC_UIO:
-	case RTE_KDRV_NVME:
 		if (rte_eal_iopl_init() != 0) {
 			RTE_LOG(ERR, EAL, "%s(): insufficient ioport permissions for PCI device %s\n",
 				__func__, dev->name);
@@ -630,7 +597,6 @@ rte_pci_ioport_read(struct rte_pci_ioport *p,
 {
 	switch (p->dev->kdrv) {
 	case RTE_KDRV_NIC_UIO:
-	case RTE_KDRV_NVME:
 		pci_uio_ioport_read(p, data, len, offset);
 		break;
 	default:
@@ -673,7 +639,6 @@ rte_pci_ioport_write(struct rte_pci_ioport *p,
 {
 	switch (p->dev->kdrv) {
 	case RTE_KDRV_NIC_UIO:
-	case RTE_KDRV_NVME:
 		pci_uio_ioport_write(p, data, len, offset);
 		break;
 	default:
@@ -689,7 +654,6 @@ rte_pci_ioport_unmap(struct rte_pci_ioport *p)
 	switch (p->dev->kdrv) {
 #if defined(RTE_ARCH_X86)
 	case RTE_KDRV_NIC_UIO:
-	case RTE_KDRV_NVME:
 		ret = 0;
 		break;
 #endif
